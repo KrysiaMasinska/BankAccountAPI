@@ -1,4 +1,5 @@
 ﻿using BankAccountAPI.Entities;
+using BankAccountAPI.Models;
 using BankAccountAPI.Services.Interface;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,15 +13,17 @@ namespace BankAccountAPI.Services
             _dbContext = dbContext;
         }
 
-        public async Task<Response> CreateNewTransation(Transaction transations)
+        /// <inheritdoc/>>
+        public async Task<Response> CreateNewTransation(TransactionDTO transactionDTO)
         {
             using var trans = await _dbContext.Database.BeginTransactionAsync();
             try
             {
-                await _dbContext.Transactions.AddAsync(transations);
+                Transaction transaction = transactionDTO.ToDTO();
+                await _dbContext.Transactions.AddAsync(transaction);
                 await _dbContext.SaveChangesAsync();
                 await trans.CommitAsync();
-                return ReturnResponse("Transaction was successful", transations.TransactionAmount.ToString(), StatusOfTransaction.Success.ToString());
+                return ReturnResponse("Transaction was successful", transaction.TransactionAmount.ToString(), StatusOfTransaction.Success.ToString());
             }
             catch (Exception ex)
             {
@@ -29,6 +32,7 @@ namespace BankAccountAPI.Services
             }
         }
 
+        /// <inheritdoc/>>
         public async Task<Response> MakeCredit(string accountNumber, decimal amount)
         {
             using var trans = await _dbContext.Database.BeginTransactionAsync();
@@ -52,6 +56,7 @@ namespace BankAccountAPI.Services
             }
         }
 
+        /// <inheritdoc/>>
         public async Task<Response> MakeDebit(string accountNumber, decimal amount)
         {
             if (amount < 0)
@@ -81,6 +86,7 @@ namespace BankAccountAPI.Services
             }
         }
 
+        /// <inheritdoc/>>
         public async Task<Response> GetAccountBalance(string accountNumber)
         {
             Transaction transactions = await _dbContext.Transactions.FirstOrDefaultAsync(r => r.AccounNumber == accountNumber);
